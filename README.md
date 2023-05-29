@@ -1,4 +1,5 @@
-# orkes-java-springboot2-subscription-example
+# Java Springboot Example for Managing Monthly Subscriptions using Netflix Conductor
+
 Sample application demonstrating how to run a monthly subscription using Orkes Netflix Conductor - using Java and Spring Boot 2
 
 
@@ -34,7 +35,7 @@ The business logic is as follows:
 
 We can define this workflow visually as follows: 
 
-
+![Workflow Diagram](./workflow-diagram.png)
 
 Click [here](https://play.orkes.io/workflowDef/monthly_subscription_workflow_with_trial) to access this definition on Conductor playground
 
@@ -43,4 +44,23 @@ Here we are using two parallel forks where
 1. In the first fork, we will handle the subscription flow
 2. In the second fork, we will wait for a signal that the user is canceling
 
-Either of the forks can complete and will end the workflow
+Either of the forks can complete and will end the workflow. To pass a signal we can use a webhook.
+
+The webhook is configured to expect a header called `subscriptionflow` with value `subscription-flow-header-unique-value`
+
+When this webhook is invoked, it will look for running workflows and match the parameter as defined in the 
+`WAIT_FOR_WEBHOOK` task ([docs](https://orkes.io/content/reference-docs/system-tasks/wait-for-webhook))
+
+Webhook invocation sample:
+
+```shell
+
+curl -H "Content-Type:application/json" -H "Accept:application/json" \
+     -H 'subscriptionflow: subscription-flow-header-unique-value'    \
+     -X POST 'https://play.orkes.io/webhook/ba70ba33-1a19-449e-98c2-d4581fcd9aad' \
+     -d '{"event": {"userId" : "user-id-1"}}'
+
+```
+
+We can also invoke the same API from code - which is what we have done in `WorkflowService.java`
+
