@@ -11,9 +11,9 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StartSubscriptionResult {
-    // Data model representing a start subscription result
-    private StartSubscriptionRequest request;
+public class MonthlyChargeResult {
+
+    private MonthlyChargeInfo monthlyChargeInfo;
     private String status;
     private Date updatedAt;
 

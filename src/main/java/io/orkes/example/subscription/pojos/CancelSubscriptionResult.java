@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Data
 @Builder
@@ -15,5 +15,5 @@ public class CancelSubscriptionResult {
     // Data model representing a cancel subscription result
     private CancelSubscriptionRequest request;
     private String status;
-    private Instant updatedAt;
+    private Date updatedAt;
 }

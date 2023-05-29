@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Data
 @Builder
@@ -16,6 +16,6 @@ public class SendEmailResult {
 
     private EmailMetadata emailMetadata;
     private String status;
-    private Instant timeSent;
+    private Date updatedAt;
 
 }

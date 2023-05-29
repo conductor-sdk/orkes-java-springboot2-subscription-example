@@ -5,7 +5,7 @@ import io.orkes.example.subscription.pojos.SendEmailResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -16,7 +16,7 @@ public class EmailService {
         return SendEmailResult.builder()
                 .emailMetadata(emailMetadata)
                 .status("SUCCESS")
-                .timeSent(Instant.now())
+                .updatedAt(new Date())
                 .build();
     }
 

@@ -4,7 +4,6 @@ import io.orkes.example.subscription.pojos.CancelSubscriptionRequest;
 import io.orkes.example.subscription.pojos.CancelSubscriptionResult;
 import io.orkes.example.subscription.pojos.StartSubscriptionRequest;
 import io.orkes.example.subscription.pojos.StartSubscriptionResult;
-import io.orkes.example.subscription.service.EmailService;
 import io.orkes.example.subscription.service.WorkflowService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

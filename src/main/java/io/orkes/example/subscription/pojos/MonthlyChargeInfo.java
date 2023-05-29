@@ -5,17 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StartSubscriptionRequest {
-
-    // Data model representing a start subscription request
+public class MonthlyChargeInfo {
 
     private String userId;
-    private String userEmail;
-    private String billingAmount;
-    private String billingPeriods;
+    private BigDecimal amount;
+    private Integer billingPeriodNumber;
 
 }
