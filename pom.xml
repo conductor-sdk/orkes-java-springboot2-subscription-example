@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>io.orkes.conductor</groupId>
 			<artifactId>orkes-conductor-client</artifactId>
-			<version>1.1.18</version>
+			<version>1.1.19</version>
 		</dependency>
 
 		<dependency>

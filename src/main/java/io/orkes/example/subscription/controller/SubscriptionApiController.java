@@ -1,9 +1,6 @@
 package io.orkes.example.subscription.controller;
 
-import io.orkes.example.subscription.pojos.CancelSubscriptionRequest;
-import io.orkes.example.subscription.pojos.CancelSubscriptionResult;
-import io.orkes.example.subscription.pojos.StartSubscriptionRequest;
-import io.orkes.example.subscription.pojos.StartSubscriptionResult;
+import io.orkes.example.subscription.pojos.*;
 import io.orkes.example.subscription.service.WorkflowService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @AllArgsConstructor
 @RestController
-public class SubcriptionApiController {
+public class SubscriptionApiController {
 
     // This controller that exposes the APIs relies on this service class and here the service class is responsible for just interacting with
     // Conductor workflow system
@@ -41,4 +38,13 @@ public class SubcriptionApiController {
 
     // docs-marker-end-2
 
+    // docs-marker-start-3
+
+    @PostMapping(value = "/updateSubscription", produces = "application/json")
+    public ResponseEntity<UpdateSubscriptionResult> cancelSubscription(@RequestBody UpdateSubscriptionRequest updateSubscriptionRequest) {
+        log.info("Updating subscription details: {}", updateSubscriptionRequest);
+        return ResponseEntity.ok(workflowService.updateSubscriptionWorkflowVariables(updateSubscriptionRequest));
+    }
+
+    // docs-marker-end-3
 }

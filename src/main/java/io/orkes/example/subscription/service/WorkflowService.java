@@ -3,12 +3,9 @@ package io.orkes.example.subscription.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
+import com.netflix.conductor.common.run.Workflow;
 import io.orkes.conductor.client.WorkflowClient;
-import io.orkes.example.subscription.pojos.CancelSubscriptionRequest;
-import io.orkes.example.subscription.pojos.CancelSubscriptionResult;
-import io.orkes.example.subscription.pojos.CancelWebhookEventPayload;
-import io.orkes.example.subscription.pojos.StartSubscriptionRequest;
-import io.orkes.example.subscription.pojos.StartSubscriptionResult;
+import io.orkes.example.subscription.pojos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -20,12 +17,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class WorkflowService {
 
+    public static final String WF_NAME_MONTHLY_SUBSCRIPTION_WORKFLOW_WITH_TRIAL = "monthly_subscription_workflow_with_trial";
     private final RestTemplate restTemplate = new RestTemplate();
 
     private final WorkflowClient workflowClient;
@@ -45,7 +45,8 @@ public class WorkflowService {
 
         // Create a pojo for submitting the start workflow request - requires name, input data required
         StartWorkflowRequest request = new StartWorkflowRequest();
-        request.setName("monthly_subscription_workflow_with_trial");
+        request.setName(WF_NAME_MONTHLY_SUBSCRIPTION_WORKFLOW_WITH_TRIAL);
+        request.setCorrelationId(getCorrelationId(startSubscriptionRequest.getUserId()));
 
         // Input data is submitted as a key value map
         // Here we are converting our request as a key value pair
@@ -65,6 +66,10 @@ public class WorkflowService {
                 .workflowId(workflowId)
                 .request(startSubscriptionRequest)
                 .build();
+    }
+
+    private static String getCorrelationId(String userId) {
+        return userId + "-subscription";
     }
 
     // In this method, we will invoke an API (that is not supported on the SDK yet) to signal that the workflow
@@ -103,4 +108,24 @@ public class WorkflowService {
                 .build();
     }
 
+    // This API will get the workflows running in conductor by its correlation id and workflow name
+    // and will use the update variable function to update the variables in the workflow
+    public UpdateSubscriptionResult updateSubscriptionWorkflowVariables(UpdateSubscriptionRequest updateSubscriptionRequest) {
+        Map<String, List<Workflow>> workflowsByNamesAndCorrelationIds = workflowClient.getWorkflowsByNamesAndCorrelationIds(List.of(getCorrelationId(updateSubscriptionRequest.getUserId())),
+                List.of(WF_NAME_MONTHLY_SUBSCRIPTION_WORKFLOW_WITH_TRIAL), false, false);
+        List<Workflow> workflows = workflowsByNamesAndCorrelationIds.get(getCorrelationId(updateSubscriptionRequest.getUserId()));
+        if(workflows == null) {
+            throw new RuntimeException("No active subscriptions found for this user " + updateSubscriptionRequest.getUserId());
+        }
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("billingAmount", updateSubscriptionRequest.getBillingAmount());
+        vars.put("billingPeriods", updateSubscriptionRequest.getBillingPeriods());
+        // We expect only one workflow if the correlation id is unique, and we could validate that or pick the right workflow if there are many.
+        workflows.forEach(workflow -> workflowClient.updateVariables(workflow.getWorkflowId(), vars));
+        return UpdateSubscriptionResult.builder()
+                .status("SUCCESS")
+                .request(updateSubscriptionRequest)
+                .updatedAt(new Date())
+                .build();
+    }
 }
