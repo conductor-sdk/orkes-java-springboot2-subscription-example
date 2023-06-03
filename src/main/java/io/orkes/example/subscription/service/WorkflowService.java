@@ -1,9 +1,12 @@
 package io.orkes.example.subscription.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.common.metadata.workflow.StartWorkflowRequest;
 import io.orkes.conductor.client.WorkflowClient;
 import io.orkes.example.subscription.pojos.CancelSubscriptionRequest;
 import io.orkes.example.subscription.pojos.CancelSubscriptionResult;
+import io.orkes.example.subscription.pojos.CancelWebhookEventPayload;
 import io.orkes.example.subscription.pojos.StartSubscriptionRequest;
 import io.orkes.example.subscription.pojos.StartSubscriptionResult;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -29,10 +31,12 @@ public class WorkflowService {
     private final WorkflowClient workflowClient;
 
     private final String conductorWebhookUrl;
+    private final ObjectMapper objectMapper;
 
-    public WorkflowService(WorkflowClient workflowClient, @Value("${conductor.subscription.updatehook.url}") String conductorWebhookUrl) {
+    public WorkflowService(WorkflowClient workflowClient, @Value("${conductor.subscription.updatehook.url}") String conductorWebhookUrl, ObjectMapper objectMapper) {
         this.workflowClient = workflowClient;
         this.conductorWebhookUrl = conductorWebhookUrl;
+        this.objectMapper = objectMapper;
     }
 
     // Starts a workflow that manages the subscription by using the SDK to invoke Conductor start workflow method
@@ -44,10 +48,10 @@ public class WorkflowService {
         request.setName("monthly_subscription_workflow_with_trial");
 
         // Input data is submitted as a key value map
-        Map<String, Object> inputData = new HashMap<>();
-        inputData.put("userId", startSubscriptionRequest.getUserId());
+        // Here we are converting our request as a key value pair
+        Map<String, Object> inputData = objectMapper.convertValue(startSubscriptionRequest, new TypeReference<>() {});
 
-        // Set the input data to the request
+        // Set the input data
         request.setInput(inputData);
 
         // Trigger the workflow
@@ -58,6 +62,7 @@ public class WorkflowService {
         return StartSubscriptionResult.builder()
                 .status("SUCCESS")
                 .updatedAt(new Date())
+                .workflowId(workflowId)
                 .request(startSubscriptionRequest)
                 .build();
     }
@@ -84,7 +89,9 @@ public class WorkflowService {
         // This key value should match what's configured in the Conductor UI for this webhook with URL - conductorWebhookUrl
         headers.add("subscriptionflow", "subscription-flow-header-unique-value");
 
-        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        HttpEntity<CancelWebhookEventPayload> requestEntity = new HttpEntity<>(CancelWebhookEventPayload.builder()
+                .event(cancelSubscriptionRequest)
+                .build(), headers);
         // The response to webhook is Void, but status code can be checked
         ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Void.class);
 

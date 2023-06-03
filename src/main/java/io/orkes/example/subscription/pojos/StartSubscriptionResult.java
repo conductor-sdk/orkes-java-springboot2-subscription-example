@@ -15,6 +15,7 @@ public class StartSubscriptionResult {
     // Data model representing a start subscription result
     private StartSubscriptionRequest request;
     private String status;
+    private String workflowId;
     private Date updatedAt;
 
 }
