@@ -111,9 +111,7 @@ public class WorkflowService {
     // This API will get the workflows running in conductor by its correlation id and workflow name
     // and will use the update variable function to update the variables in the workflow
     public UpdateSubscriptionResult updateSubscriptionWorkflowVariables(UpdateSubscriptionRequest updateSubscriptionRequest) {
-        Map<String, List<Workflow>> workflowsByNamesAndCorrelationIds = workflowClient.getWorkflowsByNamesAndCorrelationIds(List.of(getCorrelationId(updateSubscriptionRequest.getUserId())),
-                List.of(WF_NAME_MONTHLY_SUBSCRIPTION_WORKFLOW_WITH_TRIAL), false, false);
-        List<Workflow> workflows = workflowsByNamesAndCorrelationIds.get(getCorrelationId(updateSubscriptionRequest.getUserId()));
+        List<Workflow> workflows = workflowClient.getWorkflows(WF_NAME_MONTHLY_SUBSCRIPTION_WORKFLOW_WITH_TRIAL, getCorrelationId(updateSubscriptionRequest.getUserId()), false, false);
         if(workflows == null) {
             throw new RuntimeException("No active subscriptions found for this user " + updateSubscriptionRequest.getUserId());
         }
